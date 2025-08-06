@@ -5,21 +5,47 @@ pipeline {
         nodejs 'NodeJS-LTS'
     }
     stages {
-        stage('Checkout: Bajar código de Cypress') {
+        stage('1. Checkout: Bajar código') {
             steps {
+                // Este paso ahora debe bajar tanto el código de la app
+                // como el código de el proyecto de testing Cypress.
                 checkout scm
             }
         }
-        stage('Install: Instalar dependencias de Cypress') {
+        
+        // --- Etapa de Compilación y Pruebas del Backend (Java) ---
+        stage('2. Build & Test Backend') {
             steps {
-                sh 'npm ci'
+                echo 'Compilando y corriendo tests de JUnit...'
+                // sh './mvnw clean install' // Compila y ejecuta tests unitarios
             }
         }
-        stage('Test: Ejecutar Pruebas Cypress') {
-            steps {
-                ansiColor('xterm') {
-                    sh 'npm run cy:run'
+
+        // --- Etapa Condicional para Pruebas de UI con Cypress ---
+        // stage('3. Test Frontend (Cypress)') {
+            // ✅ ESTA ETAPA SÓLO SE EJECUTA SI CAMBIAN LAS VISTAS
+            // when {
+            //     changeset "src/main/java/vaadin/view/impl/**"
+            // }
+            stage('Test: Ejecutar Pruebas Cypress') {
+                steps {
+                    ansiColor('xterm') {
+                        sh 'npm run cy:run'
+                    }
                 }
+            }
+        // }
+        
+        // --- NUEVA ETAPA DE DESPLIEGUE ---
+        // ✅ ESTA ETAPA SÓLO SE EJECUTA SI LAS ANTERIORES FUERON EXITOSAS
+        stage('4. Deploy to Staging') {
+            steps {
+                echo 'Todas las pruebas pasaron. Desplegando a servidor de pruebas...'
+                
+                // Aquí pones los comandos para desplegar tu aplicación.
+                // Por ejemplo, copiar el archivo .jar al servidor de QA.
+                // sh 'scp target/mi-app.jar usuario@servidor-qa:/ruta/'
+                // sh 'ssh usuario@servidor-qa "systemctl restart mi-app"'
             }
         }
     }

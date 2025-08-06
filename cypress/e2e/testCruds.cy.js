@@ -1,8 +1,37 @@
+/*
+* DESCRIBE -> Si es algo diferente como otro test
+*
+* beforeEach -> Antes de cada test para no repetir, optimiza el login por ejemplo
+*
+* 
+*
+* ELEMENTOS QUE USE:
+*
+* El cy.visit(...) a la página específica de ese test.
+*
+* Los clics en botones (.click()).
+*
+* La escritura en campos (.type()).
+*
+* Las verificaciones y aserciones (.should(...)).
+* Aveces funciona como en el login para una vez que cargo la pagina, empieza a buscar
+* (No funciono en el crear de los ABM al parecer porque tarda mucho en cargar los registros)
+*
+* cy.contains('vaadin-button', 'Crear', { timeout: 10000 }).click();
+* * Verifico si esta el componente boton en el abm y espero a que cargue para apretarlo
+*
+*
+* En el Reporte me vi obligado a buscar por placeholder porque no tenia name ni compoennt.
+* cy.get('input[placeholder="Cuentas"]').type('Intentando escribir...');
+*
+* Observación: Todo se solucionaria con ids o etiquetas especificas.
+*
+* Esto es cypress con jenkins ejecuto miles de test simultaneos y verifico pruebas con videos.
+* 
+*/
 describe('Flujo de Creación: Entidad y Cuenta Corriente', () => {
 
   beforeEach(() => {
-    // Tu bloque beforeEach con cy.session se mantiene exactamente igual.
-    // Se encarga de que estés logueado para cada test.
     cy.session('sesion_activa_sandra', () => {
       cy.visit('http://localhost:8080/jcnt/v/login?servers=produccion');
       cy.get('input[name="username"]').type('sandra');
@@ -12,45 +41,26 @@ describe('Flujo de Creación: Entidad y Cuenta Corriente', () => {
     });
   });
 
-  // --- Test 1: Crear la Entidad ---
   it('Crear entidad con próximo número sugerido', () => {
-    // Visita la página de Entidades
     cy.visit('http://localhost:8080/jcnt/v/ABMEntidadView?menu=21062');
     
     cy.contains('vaadin-button', 'Crear', { timeout: 10000 }).click();
 
-    // Aquí iría la lógica para rellenar el formulario de la entidad y guardarla
-    // cy.get('#campo-nombre-entidad').type('Nueva Empresa S.A.');
-    // cy.get('#boton-guardar-entidad').click();
-    // cy.contains('Entidad guardada con éxito').should('be.visible');
   });
 
 
-  // --- Test 2: Crear la Cuenta Corriente (NUEVO BLOQUE) ---
   it('Crear Cuenta Corriente con próximo número sugerido', () => {
-    // 1. Visita la página del ABM de Cuentas Corrientes
-        cy.visit('http://localhost:8080/jcnt/v/ABMCuentaCorrienteView?menu=600000027'); // Reemplaza XXXXX con el ID de menú correcto
+        cy.visit('http://localhost:8080/jcnt/v/ABMCuentaCorrienteView?menu=600000027');
 
     // 2. Haz clic en el botón "Crear"
         cy.contains('vaadin-button', 'Crear', { timeout: 10000 }).click();
 
-    // 3. Rellena el formulario de la nueva cuenta corriente.
-    //    Aquí podrías seleccionar la entidad que creaste en el test anterior.
-    // cy.get('#combo-entidad').type('Nueva Empresa S.A.');
-    // cy.get('#campo-limite-credito').type('500000');
-
-    // 4. Guarda la nueva cuenta corriente
-    // cy.get('#boton-guardar-ctacte').click();
-
-    // 5. Verifica que se haya creado correctamente
-    // cy.contains('Cuenta Corriente guardada con éxito').should('be.visible');
   });
 
-    // --- Test 3: Escribir en Reporte para buscar (NUEVO BLOQUE) ---
-  it('Crear Cuenta Corriente con próximo número sugerido', () => {
-        cy.visit('http://localhost:8080/jcnt/v/ReporteSubdiarioIIBBView?menu=15101'); // Reemplaza XXXXX con el ID de menú correcto
+  it('Consultando reporte con datos esperados', () => {
+        cy.visit('http://localhost:8080/jcnt/v/ReporteSubdiarioIIBBView?menu=15101');
 
-        cy.get('input[placeholder="Cuentas"]').type('Intentando escribir...');
+        cy.get('input[placeholder="Cuentas"]', { timeout: 10000 }).type('Intentando escribir...');
   });
 
 });
