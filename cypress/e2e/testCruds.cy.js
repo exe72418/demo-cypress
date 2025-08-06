@@ -1,49 +1,56 @@
-// describe('Testear CRUDs de Entidades', () => { // Un nombre más descriptivo
-describe('CRUD de Entidades', () => {
+describe('Flujo de Creación: Entidad y Cuenta Corriente', () => {
 
-  // Este bloque se ejecuta ANTES de cada 'it()'
   beforeEach(() => {
-    
-    // cy.session() se encarga de la magia:
-    // 1. La primera vez, ejecuta el código de adentro para iniciar sesión.
-    // 2. Guarda las cookies y el estado de la sesión.
-    // 3. En las siguientes pruebas, en lugar de volver a loguearse, simplemente restaura la sesión guardada.
+    // Tu bloque beforeEach con cy.session se mantiene exactamente igual.
+    // Se encarga de que estés logueado para cada test.
     cy.session('sesion_activa_sandra', () => {
       cy.visit('http://localhost:8080/jcnt/v/login?servers=produccion');
       cy.get('input[name="username"]').type('sandra');
       cy.get('input[name="password"]').should('be.enabled').type('mosaFor267$');
       cy.get('vaadin-button[part="vaadin-login-submit"]').click();
-      
-      // Es una buena práctica verificar que el login fue exitoso aquí mismo
       cy.url().should('not.include', 'login'); 
     });
-
-    // Una vez que la sesión está activa (ya sea nueva o restaurada),
-    // visitamos la página específica que queremos probar.
-    cy.visit('http://localhost:8080/jcnt/v/ABMEntidadView?menu=21062');
   });
 
-
-  // --- AHORA TUS PRUEBAS SON LIMPIAS Y ENFOCADAS ---
-
-  // Tu prueba original, ahora mucho más corta
-  it('Debería poder hacer clic en el botón "Crear"', () => {
-    // No necesitas iniciar sesión ni visitar la página, beforeEach ya lo hizo.
+  // --- Test 1: Crear la Entidad ---
+  it('Crear entidad con próximo número sugerido', () => {
+    // Visita la página de Entidades
+    cy.visit('http://localhost:8080/jcnt/v/ABMEntidadView?menu=21062');
+    
     cy.contains('vaadin-button', 'Crear', { timeout: 10000 }).click();
 
-    // Aquí agregarías una aserción para verificar que se abrió el formulario
-    // cy.get('div.formulario-crear-entidad').should('be.visible'); // Ejemplo
+    // Aquí iría la lógica para rellenar el formulario de la entidad y guardarla
+    // cy.get('#campo-nombre-entidad').type('Nueva Empresa S.A.');
+    // cy.get('#boton-guardar-entidad').click();
+    // cy.contains('Entidad guardada con éxito').should('be.visible');
   });
 
-  // ¡Mira qué fácil es agregar una segunda prueba!
-  // it('Debería mostrar la grilla de entidades al cargar la página', () => {
-  //   // De nuevo, ya estás logueado y en la página correcta.
-  //   cy.get('vaadin-grid').should('be.visible');
-  // });
 
-  // // Y una tercera...
-  // it('El botón "Crear" debería estar habilitado', () => {
-  //   cy.contains('vaadin-button', 'Crear').should('be.enabled');
-  // });
+  // --- Test 2: Crear la Cuenta Corriente (NUEVO BLOQUE) ---
+  it('Crear Cuenta Corriente con próximo número sugerido', () => {
+    // 1. Visita la página del ABM de Cuentas Corrientes
+        cy.visit('http://localhost:8080/jcnt/v/ABMCuentaCorrienteView?menu=600000027'); // Reemplaza XXXXX con el ID de menú correcto
+
+    // 2. Haz clic en el botón "Crear"
+        cy.contains('vaadin-button', 'Crear', { timeout: 10000 }).click();
+
+    // 3. Rellena el formulario de la nueva cuenta corriente.
+    //    Aquí podrías seleccionar la entidad que creaste en el test anterior.
+    // cy.get('#combo-entidad').type('Nueva Empresa S.A.');
+    // cy.get('#campo-limite-credito').type('500000');
+
+    // 4. Guarda la nueva cuenta corriente
+    // cy.get('#boton-guardar-ctacte').click();
+
+    // 5. Verifica que se haya creado correctamente
+    // cy.contains('Cuenta Corriente guardada con éxito').should('be.visible');
+  });
+
+    // --- Test 3: Escribir en Reporte para buscar (NUEVO BLOQUE) ---
+  it('Crear Cuenta Corriente con próximo número sugerido', () => {
+        cy.visit('http://localhost:8080/jcnt/v/ReporteSubdiarioIIBBView?menu=15101'); // Reemplaza XXXXX con el ID de menú correcto
+
+        cy.get('input[placeholder="Cuentas"]').type('Intentando escribir...');
+  });
 
 });
