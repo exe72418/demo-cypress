@@ -60,7 +60,7 @@ describe('Flujo de Creación: Entidad y Cuenta Corriente', () => {
   it('Consultando reporte con datos esperados', () => {
         cy.visit('http://localhost:8080/jcnt/v/ReporteSubdiarioIIBBView?menu=15101');
 
-        cy.get('input[placeholder="Cuentas"]', { timeout: 10000 }).type('Intentando escribir...');
+        cy.get('[data-testid=combo-empresa]').click();
   });
 
 });
