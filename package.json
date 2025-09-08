@@ -1,15 +1,16 @@
 {
-  "name": "demo-cypress",
+  "name": "e2e-tests-yavu-erp",
   "version": "1.0.0",
-  "description": "",
+  "description": "Suite de pruebas End-to-End para Yavu ERP con Cypress y Playwright",
   "scripts": {
-    "cy:run": "cypress run --browser chrome --headless",
-    "test": "npm run cy:run"
+    "test:cypress": "cypress run",
+    "test:playwright": "playwright test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "cypress": "^14.5.3"
+    "@playwright/test": "^1.45.1",
+    "cypress": "^13.13.0"
   }
 }
