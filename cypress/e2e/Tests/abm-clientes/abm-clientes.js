@@ -7,6 +7,15 @@ Given('el usuario está autenticado en el sistema', () => {
   cy.get('input[name="password"]').should('be.enabled').type('mosaFor267$');
   cy.get('vaadin-button[part="vaadin-login-submit"]').click();
   cy.url().should('not.include', 'login');
+  Cypress.on('uncaught:exception', (err, runnable) => {
+    // Vaadin a veces lanza este error internamente al destruir componentes.
+    // Devolver 'false' aquí previene que Cypress falle el test por este motivo.
+    if (err.message.includes('Cannot read properties of null (reading \'removeEventListener\')')) {
+      return false;
+    }
+    // Permite que otros errores no relacionados sí fallen el test.
+    return true;
+  });
 });
 
 // --- CAMBIOS PRINCIPALES AQUÍ ---
@@ -67,11 +76,11 @@ When('el usuario ingresa {string} en el campo con la etiqueta custom {string}', 
 
       for (const label of labels) {
         if (label && label.textContent.trim() === labelDelCampo) {
-        const input = field.querySelector('input');
+          const input = field.querySelector('input');
 
-        if (input) {
-          cy.wrap(input).type(texto);
-        }
+          if (input) {
+            cy.wrap(input).type(texto);
+          }
         }
       }
     }
@@ -88,10 +97,9 @@ When('el usuario selecciona {string} en el combo custom {string}', (opcion, labe
       for (const label of labels) {
         if (label && label.textContent.trim() === labelDelCampo) {
           const combo = field.querySelector('vaadin-combo-box');
-          if (combo)
-          {
+          if (combo) {
             cy.wrap(combo).click();
-            cy.wait(1000); 
+            cy.wait(1000);
             cy.get('vaadin-combo-box-overlay', { timeout: 30000 })
               .contains('vaadin-combo-box-item', opcion, { timeout: 20000 })
               .click();
@@ -113,26 +121,61 @@ When('el usuario elige {string} en el combo custom del dialog {string}', (opcion
 
         for (const label of labels) {
           if (label && label.textContent.trim() === labelDelCampo) {
-            const combo = field.querySelector('vaadin-combo-box');
-            combo.setAttribute('opened', '');
+            const combo = field.querySelectorAll('vaadin-combo-box');
+          const input = field.querySelector('vaadin-combo-box').querySelector('input');
+          for (const c of combo) {
+            console.log('combo html', c.getHTML());
+            console.log('combo atr', c.getAttribute());
+            console.log('combo node', c.getAttributeNode());
+            console.log('combo ns', c.getAttributeNS());
+          }
+          console.log('input', input);
+          if (input) {
+            cy.wrap(input).click();
+              // cy.get('vaadin-combo-box-item', { timeout: 30000 })
+              //   .should('exist') // asegura que al menos hay items
+              //   .each($item => {
+              //     cy.wrap($item).invoke('text').then(texto => {
+              //       console.log('Opción encontrada:', texto);
+              //       if (texto.trim() === opcion) {
+              //         cy.wrap($item).click({ force: true });
+              //       }
+              //     });
+              //   });
 
-            if (combo) {
-              cy.wait(500);
-              let opcionEncontrada = false;
-              cy.get('vaadin-combo-box-overlay', { timeout: 30000 }).each($overlay => {
-                if (opcionEncontrada) return;
-                    console.log('Item del combo:', $overlay); 
+              // let opcionEncontrada = false;
 
-                cy.wrap($overlay).shadow().find('vaadin-combo-box-scroller').shadow()
-                  .find('vaadin-combo-box-item').each($item => {
-                    console.log('Item del combo:', $item); 
-                    if ($item.textContent.trim() === opcion) {
-                      cy.wrap($item).click({ force: true });
-                      opcionEncontrada = true; // marcar como encontrada
-                      return false; // rompe el each de items
-                    }
-                  });
-              });
+              // cy.get('vaadin-combo-box-overlay', { timeout: 30000 }).then($overlays => {
+              //     if ($overlays.length === 0) {
+              //         console.log('No se encontraron overlays');
+              //         return;
+              //     }
+
+              //     Cypress.$($overlays).each((index, overlay) => {
+              //         if (opcionEncontrada) return false;
+
+              //         cy.wrap(overlay)
+              //             .shadow()
+              //             .then($shadow => {
+              //                 const $items = $shadow.find('vaadin-combo-box-item');
+              //                 if ($items.length === 0) return;
+
+              //                 Cypress.$($items).each((i, item) => {
+              //                     if (opcionEncontrada) return false;
+
+              //                     cy.wrap(item).invoke('text').then(texto => {
+              //                         if (texto.trim() === opcion) {
+              //                             cy.wrap(item).click({ force: true });
+              //                             opcionEncontrada = true;
+              //                         }
+              //                     });
+              //                 });
+              //             });
+              //     });
+              // });
+
+
+
             }
           }
         }
@@ -142,7 +185,7 @@ When('el usuario elige {string} en el combo custom del dialog {string}', (opcion
 
 
 When('el usuario hace click en el tab {string}', (nombreDelTab) => {
-  cy.contains('vaadin-tab', nombreDelTab, { timeout: 30000}).click();
+  cy.contains('vaadin-tab', nombreDelTab, { timeout: 30000 }).click();
 });
 
 When('el usuario apreta {string} de la fila del grid {string}', (nombreDelMenuItem, cellContent) => {

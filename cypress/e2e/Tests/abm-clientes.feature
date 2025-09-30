@@ -14,23 +14,23 @@ Feature: ABM de Entidades
     When el usuario hace click en el tab "Impuestos Provinciales"
     When el usuario apreta "Editar" de la fila del grid "[000] CAPITAL FEDERAL"
     When el usuario espera 3 segundos
-    And el usuario elige "[00] NO CONTRIBUYE  EXENTO" en el combo custom del dialog "Situación ante IIBB"
+    And el usuario elige "[00] NO CONTRIBUYE EXENTO" en el combo custom del dialog "Situación ante IIBB"
     And el usuario hace clic en el botón con el texto "Aceptar"
     When el usuario apreta "Editar" de la fila del grid "BUENOS AIRES"
     When el usuario espera 3 segundos
-    And el usuario elige "[00] NO CONTRIBUYE  EXENTO" en el combo custom del dialog "Situación ante IIBB"
+    And el usuario elige "[00] NO CONTRIBUYE EXENTO" en el combo custom del dialog "Situación ante IIBB"
     And el usuario hace clic en el botón con el texto "Aceptar"
     When el usuario apreta "Editar" de la fila del grid "SANTA FE"
     When el usuario espera 3 segundos
-    And el usuario elige "[00] NO CONTRIBUYE  EXENTO" en el combo custom del dialog "Situación ante IIBB"
+    And el usuario elige "[00] NO CONTRIBUYE EXENTO" en el combo custom del dialog "Situación ante IIBB"
     And el usuario hace clic en el botón con el texto "Aceptar"
     When el usuario apreta "Editar" de la fila del grid "TUCUMAN"
     When el usuario espera 3 segundos
-    And el usuario elige "[00] NO CONTRIBUYE  EXENTO" en el combo custom del dialog "Situación ante IIBB"
+    And el usuario elige "[00] NO CONTRIBUYE EXENTO" en el combo custom del dialog "Situación ante IIBB"
     And el usuario hace clic en el botón con el texto "Aceptar"
     When el usuario apreta "Editar" de la fila del grid "MISIONES"
     When el usuario espera 3 segundos
-    And el usuario elige "[00] NO CONTRIBUYE  EXENTO" en el combo custom del dialog "Situación ante IIBB"
+    And el usuario elige "[00] NO CONTRIBUYE EXENTO" en el combo custom del dialog "Situación ante IIBB"
     And el usuario hace clic en el botón con el texto "Aceptar"
     And el usuario hace clic en el botón con el texto "Guardar"
     When el usuario espera 5 segundos
