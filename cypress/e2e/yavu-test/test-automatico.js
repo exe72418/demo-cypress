@@ -57,7 +57,12 @@ When('el usuario cierra el mensaje "Dismiss" si existe', () => {
 });
 
 Given('el usuario navega a la vista {string}', (vista) => {
-    cy.visit(`http://localhost:8080/jcnt/v/${vista}`);
+    const host = Cypress.env('HOST') || '';
+    const port = Cypress.env('PORT') || '';
+
+    const appBaseUrl = `http://${host}:${port}`;
+
+    cy.visit(`${appBaseUrl}/jcnt/v/${vista}`);
 });
 
 When('el usuario completa todos los combos', () => {
