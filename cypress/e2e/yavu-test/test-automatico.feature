@@ -2,7 +2,7 @@ Feature: Prueba de CRUD automático
 
 Scenario Outline: Verificar el CRUD de <Nombre CRUD>
     Given el usuario está autenticado en el sistema
-    When el usuario espera 2 segundos
+    When el usuario espera 10 segundos
     And el usuario navega a la vista "<URL CRUD>"
     When el usuario espera 50 segundos hasta que aparezca "<Nombre CRUD>"
     Then el elemento "#backdrop" ya no es visible
@@ -13,6 +13,7 @@ Scenario Outline: Verificar el CRUD de <Nombre CRUD>
 
   Examples:
     | Nombre CRUD     | URL CRUD                  |
+    #JENKINS_EXAMPLES_PLACEHOLDER#
     | Banco           | BancoView?menu=2512       |
     | Sectores        | SectorView?menu=2515      |
     | Roles           | RolView?menu=600000088    |

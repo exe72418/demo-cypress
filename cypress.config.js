@@ -10,7 +10,7 @@ const fs = require('fs');
 
 module.exports = defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:8080/jcnt/v/login',
+    baseUrl: `http://${process.env.CYPRESS_HOST}:${process.env.CYPRESS_PORT}`,
     includeShadowDom: true,
     pageLoadTimeout: 10000,
     video: true,

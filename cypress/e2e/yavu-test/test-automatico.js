@@ -1,18 +1,15 @@
 import { When, Then, Given, And } from "@badeball/cypress-cucumber-preprocessor";
 
 Given('el usuario está autenticado en el sistema', () => {
-    const host = Cypress.env('HOST') || '';
-    const port = Cypress.env('PORT') || '';
     const serverName = Cypress.env('SERVER') || '';
     const user = Cypress.env('USERNAME') || '';
     const pass = Cypress.env('PASSWORD') || '';
 
-    const appBaseUrl = `http://${host}:${port}`;
     const serverParam = `?servers=${serverName}`;
-    const loginUrl = `${appBaseUrl}/jcnt/v/login${serverParam}`;
+    const loginUrl = `/jcnt/v/login${serverParam}`;
 
     cy.session('userSession', () => {
-        cy.log(`Autenticando en: ${loginUrl} con usuario: ${user}`);
+        cy.log(`Autenticando en: ${loginUrl} con usuario: ${user} en el server: ${serverName} con la contraseña ${pass}`);
 
         const attemptLogin = () => {
             cy.visit(loginUrl);
@@ -57,12 +54,7 @@ When('el usuario cierra el mensaje "Dismiss" si existe', () => {
 });
 
 Given('el usuario navega a la vista {string}', (vista) => {
-    const host = Cypress.env('HOST') || '';
-    const port = Cypress.env('PORT') || '';
-
-    const appBaseUrl = `http://${host}:${port}`;
-
-    cy.visit(`${appBaseUrl}/jcnt/v/${vista}`);
+    cy.visit(`/jcnt/v/${vista}`);
 });
 
 When('el usuario completa todos los combos', () => {
