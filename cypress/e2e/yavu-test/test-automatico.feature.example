@@ -1,0 +1,32 @@
+Feature: Prueba de CRUD automático
+
+Scenario Outline: Verificar el CRUD de <Nombre CRUD>
+    Given el usuario está autenticado en el sistema
+    When el usuario espera 2 segundos
+    And el usuario navega a la vista "<URL CRUD>"
+    When el usuario espera 50 segundos hasta que aparezca "<Nombre CRUD>"
+    Then el elemento "#backdrop" ya no es visible
+    And el usuario cierra el mensaje "Dismiss" si existe
+    When el usuario completa todos los combos
+    And el usuario apreta guardar y valida que el código exista en la grilla
+    When el usuario espera 1 segundos
+    When el usuario abre el selector de columnas
+    Then el usuario pasa todas las columnas a la derecha
+    When el usuario hace clic en el botón con el texto "Aplicar"
+    When hago clic en el ícono de ver de la fila 1
+    Then valido que el campo Creación tiene contenido
+    When el usuario hace clic en el botón con el texto Volver
+    When hago clic en el ícono de borrar de la fila 1
+    And el usuario hace clic en el botón de exportar a "Excel"
+    And el usuario hace clic en el botón de exportar a "Excel"
+    When el usuario espera 7 segundos
+    Then un archivo llamado "<Nombre CRUD>" debe descargarse
+    When el usuario hace clic en el botón de exportar a "PDF"
+    When el usuario hace clic en el botón de exportar a PDF
+    Then el título de la vista debe ser "ExportPDFAction.do"
+
+  Examples:
+    | Nombre CRUD   | URL CRUD                  |
+    | Bancos        | BancoView?menu=2512       |
+    | Roles         | RolView?menu=2517         |
+    | Sectores      | SectorView?menu=2515      |

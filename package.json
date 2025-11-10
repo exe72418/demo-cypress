@@ -9,12 +9,14 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@badeball/cypress-cucumber-preprocessor": "^18.0.0",
+    "@badeball/cypress-cucumber-preprocessor": "^23.2.1",
     "@bahmutov/cypress-esbuild-preprocessor": "^2.2.6",
-    "cypress": "^13.13.0"
+    "cy-verify-downloads": "^0.3.0",
+    "cypress": "^15.5.0",
+    "esbuild-plugin-polyfill-node": "^0.3.0"
   },
   "cypress-cucumber-preprocessor": {
     "nonGlobalStepDefinitions": false,
-    "step_definitions": "cypress/e2e/Tests"
+    "step_definitions": "cypress/e2e/tests"
   }
 }
