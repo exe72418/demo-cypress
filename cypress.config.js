@@ -16,6 +16,7 @@ module.exports = defineConfig({
     video: true,
     specPattern: "cypress/e2e/**/*.feature",
     defaultCommandTimeout: 10000,
+    port: 8082,
 
     async setupNodeEvents(on, config) {
       await addCucumberPreprocessorPlugin(on, config);

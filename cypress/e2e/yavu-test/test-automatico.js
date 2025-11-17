@@ -1,5 +1,16 @@
 import { When, Then, Given, And } from "@badeball/cypress-cucumber-preprocessor";
 
+/* Si se quiere testear en local estos archivos ejecute:
+**      export CYPRESS_HOST='localhost' && 
+**       export CYPRESS_PORT='8080' && 
+**       export CYPRESS_SERVER='***' && 
+**       export CYPRESS_USERNAME='******' && 
+**       export CYPRESS_PASSWORD='******' && 
+**       export CYPRESS_TARGET_NAME='Bancos' && 
+**       export CYPRESS_TARGET_URL='ABMBancoView' && 
+**           pnpm cypress open --port 8082
+**       */
+
 Given('el usuario está autenticado en el sistema', () => {
     const serverName = Cypress.env('SERVER') || '';
     const user = Cypress.env('USERNAME') || '';
@@ -31,8 +42,16 @@ Given('el usuario está autenticado en el sistema', () => {
     });
 });
 
-When('el usuario espera {int} segundos hasta que aparezca {string}', (segundos, titulo) => {
-    cy.contains('h4', `${titulo}`, { timeout: segundos * 1000 }).should('be.visible');
+When('el usuario espera {int} segundos hasta que aparezca el titulo configurado', (segundos) => {
+    const tituloEsperado = Cypress.env('TARGET_NAME');
+
+    if (!tituloEsperado) {
+        throw new Error("🛑 Error: No se recibió la variable TARGET_NAME desde Jenkins. Revisa la configuración del Job.");
+    }
+
+    cy.log(`⏳ Esperando ${segundos}s hasta que aparezca el título: "${tituloEsperado}"`);
+
+    cy.contains('h4', tituloEsperado, { timeout: segundos * 1000 }).should('be.visible');
 });
 
 Then('el elemento {string} ya no es visible', (selector) => {
@@ -53,8 +72,16 @@ When('el usuario cierra el mensaje "Dismiss" si existe', () => {
     });
 });
 
-Given('el usuario navega a la vista {string}', (vista) => {
-    cy.visit(`/jcnt/v/${vista}`);
+Given('el usuario navega a la vista configurada', () => {
+    const vistaConfigurada = Cypress.env('TARGET_URL'); 
+
+    if (!vistaConfigurada) {
+        throw new Error("🛑 Error: No se recibió la variable TARGET_URL desde Jenkins/Ambiente");
+    }
+
+    cy.log(`📍 Navegando dinámicamente a: /jcnt/v/${vistaConfigurada}`);
+
+    cy.visit(`/jcnt/v/${vistaConfigurada}`);
 });
 
 When('el usuario completa todos los combos', () => {
@@ -134,7 +161,13 @@ When('el usuario apreta guardar y valida que el código exista en la grilla', ()
 });
 
 When('el usuario abre el selector de columnas', () => {
-    cy.get('vaadin-icon[icon="vaadin:ellipsis-dots-v"]')
+    cy.get('vaadin-icon[icon="fas:grip-vertical"]')
+        .filter(':visible')
+        .first()
+        .parent()
+        .click();
+
+    cy.get('vaadin-icon[icon="fas:table-columns"]')
         .filter(':visible')
         .first()
         .parent()
@@ -177,7 +210,17 @@ When('hago clic en el ícono de ver de la fila {int}', (fila) => {
 
     cy.get('vaadin-icon[icon="fas:eye"]')
         .eq(index)
-        .click();
+        .parent()
+        .click({ force: true });
+});
+
+When('hago clic en el ícono de editar de la fila {int}', (fila) => {
+    const index = fila - 1;
+
+    cy.get('vaadin-icon[icon="fas:pen-to-square"]')
+        .eq(index)
+        .parent()
+        .click({ force: true });
 });
 
 When('hago clic en el ícono de borrar de la fila {int}', (fila, url) => {
@@ -185,13 +228,15 @@ When('hago clic en el ícono de borrar de la fila {int}', (fila, url) => {
 
     cy.get('vaadin-icon[icon="fas:trash"]')
         .eq(index)
-        .click();
+        .parent()
+        .click({ force: true });
 
     cy.get('vaadin-button[slot="confirm-button"]')
         .click();
 
-    cy.wait(5000);
+    cy.wait(8000);
     cy.reload();
+    cy.wait(2000);
 });
 
 When('el usuario hace clic en el botón de exportar a {string}', (formato) => {
@@ -387,6 +432,96 @@ When('el usuario completa todos los campos', () => {
     });
 });
 
+Then('la columna {string} esta ordenada de forma {string}', (nombreColumna, direccionDeseada) => {
+const sorter = getGridHeader(nombreColumna).find('vaadin-grid-sorter');
+  const maxAttempts = 3; // Límite para evitar bucles infinitos
+
+  // Mapeamos el texto del feature a los valores del atributo HTML
+  const targetAttr = {
+    'ascendente': 'asc',
+    'descendente': 'desc',
+    'sin ordenar': undefined
+  }[direccionDeseada];
+
+  /**
+   * Función recursiva que hace clic hasta que la columna tiene la dirección correcta.
+   * @param {number} attempts - El número de intentos restantes.
+   */
+  function clickUntilSorted(attempts) {
+      if (attempts <= 0) {
+        throw new Error(`La columna "${nombreColumna}" no alcanzó el estado "${direccionDeseada}" después de ${maxAttempts} intentos.`);
+      }
+
+      // 🔁 VOLVEMOS A BUSCAR EL ELEMENTO AQUÍ, EN CADA INTENTO
+      getGridHeader(nombreColumna).find('vaadin-grid-sorter').then($sorter => {
+        const currentDirection = $sorter.attr('direction');
+
+        if (currentDirection !== targetAttr) {
+        cy.wrap($sorter).find('div[part="indicators"]').click();
+          cy.wait(500); // Espera para la animación/re-renderizado
+          clickUntilSorted(attempts - 1); // Llama recursivamente
+        }
+      });
+  }
+
+  clickUntilSorted(maxAttempts);
+});
+
+When('el usuario ingresa {string} en el filtro de la columna {string}', (texto, nombreColumna) => {
+  getGridHeader(nombreColumna)
+    .find('vaadin-text-field') // Los filtros suelen ser text-fields
+    .type(texto);
+});
+
+Then('en la fila con el código {string}, la columna siguiente debe contener {string}', (codigo, textoEsperado) => {
+  // 1. Busca la celda que contiene el código de referencia.
+  cy.contains('vaadin-grid-cell-content', codigo)
+    // 2. Obtenemos el valor de su atributo 'slot'.
+    .invoke('attr', 'slot')
+    .then(slotId => {
+      // slotId es, por ejemplo, "vaadin-grid-cell-content-24"
+
+      // 3. Extraemos el número del final, lo convertimos a entero y le sumamos 1.
+      const numeroBase = parseInt(slotId.split('-').pop());
+      const numeroTarget = numeroBase + 1;
+
+      // 4. Construimos el selector 'slot' para la celda de al lado.
+      const slotTarget = `vaadin-grid-cell-content-${numeroTarget}`;
+
+      // 5. Buscamos la celda objetivo por su 'slot' y verificamos que contenga el texto esperado.
+      cy.get(`vaadin-grid-cell-content[slot="${slotTarget}"]`)
+        .should('contain.text', textoEsperado);
+    });
+});
+
+When('el usuario fija la columna {string}', (nombreColumna) => {
+  // Esta implementación asume que hay un menú contextual en la cabecera
+  getGridHeader(nombreColumna)
+    .find('vaadin-button[class="botonFijar"]') // Asumo un botón de menú
+    .click();
+});
+
+Then('la grilla debe mostrar solo {string} registro', (cantidad) => {
+  cy.get('span.grid-result-counter')
+    .should('have.text', cantidad);
+});
+
+When('scrolleo hasta el final de la grilla', () => {
+    // Comando para scrollear hacia abajo en el Vaadin Grid Scroller
+    cy.get('vaadin-grid')
+      .shadow()
+      .find('#scroller')
+      .scrollTo('bottom', { ensureScrollable: false, duration: 500 }); // 500ms de duración
+});
+
+// PASO PARA VOLVER AL INICIO
+When('scrolleo de vuelta al inicio de la grilla', () => {
+    // Comando para scrollear hacia arriba (al inicio)
+    cy.get('vaadin-grid')
+      .shadow()
+      .find('#scroller')
+      .scrollTo('top', { duration: 200 });
+});
 
 const getGridHeader = (nombreColumna) => {
     // 1. Busca un <label> con la clase correcta que contenga el texto de la columna.

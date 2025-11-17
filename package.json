@@ -13,10 +13,20 @@
     "@bahmutov/cypress-esbuild-preprocessor": "^2.2.6",
     "cy-verify-downloads": "^0.3.0",
     "cypress": "^15.5.0",
-    "esbuild-plugin-polyfill-node": "^0.3.0"
+    "esbuild-plugin-polyfill-node": "^0.3.0",
+    "multiple-cucumber-html-reporter": "REMOVED",
+    "cucumber-html-reporter": "^7.1.1"
   },
   "cypress-cucumber-preprocessor": {
     "nonGlobalStepDefinitions": false,
-    "step_definitions": "cypress/e2e/tests"
+    "step_definitions": "cypress/e2e/tests",
+
+    "json": {
+      "enabled": true,
+      "output": "cypress/cucumber-json/results.json"
+    }
+  },
+  "dependencies": {
+    "multiple-cucumber-html-reporter": "^3.9.3"
   }
 }

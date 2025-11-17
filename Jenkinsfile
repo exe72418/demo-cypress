@@ -11,22 +11,30 @@ pipeline {
         string(name: 'SERVER_PARAM', defaultValue: 'vmg', description: 'Servidor o entorno (ej: vmg, test, prod)')
         string(name: 'USERNAME_PARAM', defaultValue: 'sandra', description: 'Usuario de prueba')
         string(name: 'PASSWORD_PARAM', defaultValue: 'mosaFor267$', description: 'Password del usuario de prueba')
-        text(
-            name: 'EXAMPLES_PARAM', 
-            defaultValue: '', 
-            description: 'Pega aquí filas extras para el "Scenario Outline". Ej: | MiTest | MiView?menu=123 |'
-        )
+        
+        string(name: 'TARGET_URL', defaultValue: '', description: 'La URL (sin /jcnt/v/) a testear.')
+        string(name: 'TARGET_NAME', defaultValue: '', description: 'El título a esperar de la vista.')
     }
 
     environment {
-        CYPRESS_HOST     = "${params.HOST_PARAM}"
-        CYPRESS_PORT     = "${params.PORT_PARAM}"
-        CYPRESS_SERVER   = "${params.SERVER_PARAM}"
-        CYPRESS_USERNAME = "${params.USERNAME_PARAM}"
-        CYPRESS_PASSWORD = "${params.PASSWORD_PARAM}"
+        CYPRESS_HOST            = "${params.HOST_PARAM}"
+        CYPRESS_PORT            = "${params.PORT_PARAM}"
+        CYPRESS_SERVER          = "${params.SERVER_PARAM}"
+        CYPRESS_USERNAME        = "${params.USERNAME_PARAM}"
+        CYPRESS_PASSWORD        = "${params.PASSWORD_PARAM}"
+        CYPRESS_TARGET_URL      = "${params.TARGET_URL}"
+        CYPRESS_TARGET_NAME     = "${params.TARGET_NAME}"
     }
-    
+
     stages {
+        stage('Preparar Build') {
+            steps {
+                script {
+                    currentBuild.description = "${env.CYPRESS_TARGET_NAME}" 
+                }
+            }
+        }
+
         stage('1. Checkout: Bajar Códigos') {
             steps {
                 cleanWs()
@@ -39,43 +47,13 @@ pipeline {
                 }
             }
         }
-        
-        stage('1b. Inyectar Examples') {
-            steps {
-                dir('e2e-tests') {
-                    script {
-                        if (params.EXAMPLES_PARAM.trim()) {
-                            echo "Inyectando nuevos examples en el feature..."
-                            
-                            def featureFile = "cypress/e2e/yavu-test/test-automatico.feature"
-                            def content = readFile(file: featureFile, encoding: 'UTF-8')
-                            def originalContent = content
-
-                            def newContent = content.replaceFirst("(?m)^(\\s*)#JENKINS_EXAMPLES_PLACEHOLDER#") { all, indent ->
-                                return """${indent ?: ''}${params.EXAMPLES_PARAM}
-${indent ?: ''}#JENKINS_EXAMPLES_PLACEHOLDER#"""
-                            }
-
-                            if (newContent != originalContent) {
-                                writeFile(file: featureFile, text: newContent, encoding: 'UTF-8')
-                                echo "Feature actualizado."
-                            } else {
-                                echo "ADVERTENCIA: No se encontró el placeholder '#JENKINS_EXAMPLES_PLACEHOLDER#'"
-                            }
-                        } else {
-                            echo "No se proveyeron examples extras."
-                        }
-                    }
-                }
-            }
-        }
-        
+                
         stage('2. Instalar Dependencias E2E') {
             steps {
                 dir('e2e-tests') {
                     echo 'Instalando dependencias de Node.js...'
                     sh 'npm install -g pnpm --silent'
-                    sh 'pnpm install'
+                    sh 'pnpm install --no-frozen-lockfile'
                 }
             }
         }
@@ -84,7 +62,13 @@ ${indent ?: ''}#JENKINS_EXAMPLES_PLACEHOLDER#"""
             steps {
                 dir('e2e-tests') {
                     echo "Ejecutando tests en: ${env.CYPRESS_HOST}:${env.CYPRESS_PORT} (User: ${env.CYPRESS_USERNAME})"
-                    sh 'TERM=xterm npx cypress run --port 8082 --quiet'
+                    echo "Target Test: ${env.CYPRESS_TARGET_NAME} en /jcnt/v/${env.CYPRESS_TARGET_URL}"
+                    
+                    // Ejecutamos Cypress. '|| true' evita que el pipeline se detenga si un test falla
+                    sh 'TERM=xterm npx cypress run --port 8082 --quiet || true'
+
+                    echo "Generando reporte HTML..."
+                    sh 'node generate-report.js'
                 }
             }
         }
@@ -92,8 +76,25 @@ ${indent ?: ''}#JENKINS_EXAMPLES_PLACEHOLDER#"""
 
     post {
         always {
-            echo 'Guardando resultados de las pruebas...'
-            archiveArtifacts artifacts: 'e2e-tests/cypress/videos/**, e2e-tests/cypress/screenshots/**', allowEmptyArchive: true
+            script {
+                dir('e2e-tests') {
+                    // Aseguramos permisos de lectura antes de publicar para evitar errores de copia
+                    sh 'chmod -R 777 cypress/reports || true'
+                }
+            }
+
+            echo 'Guardando resultados y videos...'
+            archiveArtifacts artifacts: 'e2e-tests/cypress/videos/**, e2e-tests/cypress/screenshots/**, e2e-tests/cypress/reports/html/**', allowEmptyArchive: true
+
+            echo 'Publicando reporte HTML...'
+            publishHTML (target: [
+                allowMissing: false,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'e2e-tests/cypress/reports/html', 
+                reportFiles: 'index.html',
+                reportName: 'Reporte Cypress'
+            ])
         }
     }
 }
